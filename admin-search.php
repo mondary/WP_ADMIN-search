@@ -1,4 +1,4 @@
-<?php
+
 /**
  * Add a search form to the WordPress admin bar.
  */
@@ -7,22 +7,14 @@ function add_admin_bar_search() {
     if ( ! is_admin() ) {
         return;
     }
-
-    // Add the modal structure to the page
-    echo '<div class="admin-bar-search-modal" style="display: none;">
-            <div class="admin-bar-search-modal-content">
-                <form role="search" method="get" class="admin-bar-search-form" action="' . esc_url( home_url( '/' ) ) . '">
-                    <input type="search" class="admin-bar-search-input" placeholder="Rechercher des articles..." value="' . get_search_query() . '" name="s" />
-                    <div class="admin-bar-search-results"></div>
-                </form>
-            </div>
-        </div>';
-
-
-    // Add a menu item to the admin bar (hidden, used only for positioning)
     $wp_admin_bar->add_menu( array(
         'id'    => 'admin-search',
-        'title' => '', // Empty title, we don't want to display anything in the admin bar
+        'title' => '<div class="admin-bar-search-container">
+                        <form role="search" method="get" class="admin-bar-search-form" action="' . esc_url( home_url( '/' ) ) . '">
+                            <input type="search" class="admin-bar-search-input" placeholder="Rechercher des articles..." value="' . get_search_query() . '" name="s" />
+                            <div class="admin-bar-search-results"></div>
+                        </form>
+                    </div>',
         'meta'  => array(
             'class' => 'admin-bar-search-menu',
         ),
@@ -30,86 +22,135 @@ function add_admin_bar_search() {
 }
 add_action( 'wp_before_admin_bar_render', 'add_admin_bar_search' );
 
-
 function admin_bar_search_styles() {
     if ( ! is_admin() ) {
         return;
     }
     ?>
     <style type="text/css">
-        /* Modal styles */
-        .admin-bar-search-modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        .admin-bar-search-menu {
+            padding: 0;
         }
-
-        .admin-bar-search-modal-content {
-            background-color: #000; /* Black background */
-            margin: 15% auto; /* 15% from the top and centered */
-            padding: 20px;
-            border: none; /* No border */
-            width: 80%; /* Could be more or less, depending on screen size */
-            max-width: 600px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        .admin-bar-search-container {
+            position: relative;
         }
-
+        .admin-bar-search-form {
+            display: flex;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
         .admin-bar-search-input {
-            width: calc(100% - 22px); /* Full width minus padding and border */
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #ddd;
+            padding: 5px 10px;
             border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 24px; /* Larger font size */
-            color: #fff; /* White text */
-            background-color: #333; /* Darker background for input */
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.5;
+            height: 30px;
+            transition: width 0.3s ease;
+            width: 150px;
         }
-
-        .admin-bar-search-input::placeholder { /* Placeholder text color */
-            color: #bbb;
+        .admin-bar-search-input:focus {
+            border-color: #007cba;
+            outline: none;
+            box-shadow: 0 0 0 1px #007cba;
+            width: 300px;
         }
-
-
         .admin-bar-search-results {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #000; /* Black background for results */
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            display: none;
+            z-index: 1000;
         }
-
-        .admin-bar-search-results a {
+        .admin-bar-search-input:focus + .admin-bar-search-results {
             display: block;
-            padding: 10px;
-            text-decoration: none;
-            color: #fff; /* White text for results */
-            font-size: 18px; /* Larger font size for results */
-        }
-
-        .admin-bar-search-results a:hover {
-            background-color: #333; /* Darker hover background */
         }
     </style>
     <script>
-        // ... (JavaScript remains the same)
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('.admin-bar-search-input');
+            const searchResults = document.querySelector('.admin-bar-search-results');
+
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value;
+                if (searchTerm.length < 3) {
+                    searchResults.innerHTML = '';
+                    searchResults.style.display = 'none';
+                    return;
+                }
+
+                fetch('<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'action=admin_search_posts&s=' + encodeURIComponent(searchTerm),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    searchResults.innerHTML = '';
+                    if (data.length > 0) {
+                        data.forEach(item => {
+                            const resultItem = document.createElement('a');
+                            resultItem.href = item.link;
+                            resultItem.textContent = item.title;
+                            searchResults.appendChild(resultItem);
+                        });
+                        searchResults.style.display = 'block';
+                    } else {
+                        const noResults = document.createElement('p');
+                        noResults.textContent = 'No results found';
+                        searchResults.appendChild(noResults);
+                        searchResults.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    searchResults.innerHTML = '<p>Error fetching results</p>';
+                    searchResults.style.display = 'block';
+                });
+            });
+
+            document.addEventListener('keydown', function(event) {
+                if (event.ctrlKey && event.key === 'k') {
+                    event.preventDefault();
+                    searchInput.focus();
+                }
+            });
+        });
     </script>
     <?php
 }
 add_action( 'admin_head', 'admin_bar_search_styles' );
 add_action( 'wp_head', 'admin_bar_search_styles' );
 
-
 function admin_search_posts_callback() {
-    // ... (same AJAX callback logic as before)
+    $search_term = isset( $_POST['s'] ) ? sanitize_text_field( $_POST['s'] ) : '';
+    $args = array(
+        's'              => $search_term,
+        'post_type'      => 'post',
+        'posts_per_page' => 5,
+    );
+    $query = new WP_Query( $args );
+    $results = array();
+    if ( $query->have_posts() ) {
+        while ( $query->have_posts() ) {
+            $query->the_post();
+            $results[] = array(
+                'title' => get_the_title(),
+                'link'  => get_permalink(),
+            );
+        }
+        wp_reset_postdata();
+    }
+    wp_send_json( $results );
 }
 add_action( 'wp_ajax_admin_search_posts', 'admin_search_posts_callback' );
 add_action( 'wp_ajax_nopriv_admin_search_posts', 'admin_search_posts_callback' );
-?>
