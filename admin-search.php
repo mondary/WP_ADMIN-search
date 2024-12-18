@@ -1,7 +1,3 @@
-
-/**
- * Ajoute un formulaire de recherche à la barre d'administration WordPress.
- */
 function add_admin_bar_search() {
     global $wp_admin_bar;
     if ( ! is_admin() ) {
@@ -9,9 +5,9 @@ function add_admin_bar_search() {
     }
     $wp_admin_bar->add_menu( array(
         'id'    => 'admin-search',
-        'title' => '<div class="admin-bar-search-container">
+        'title' => '<div class="admin-bar-search-container" style="display:none;">
                         <form role="search" method="get" class="admin-bar-search-form" action="' . esc_url( home_url( '/' ) ) . '">
-                        <input type="search" class="admin-bar-search-input" placeholder="Rechercher des articles..." value="' . get_search_query() . '" name="s" />
+                        <input type="search" class="admin-bar-search-input" placeholder="Rechercher..." value="' . get_search_query() . '" name="s" />
                         </form>
                         <div class="admin-bar-search-results" style="display:none;"></div>
                     </div>',
@@ -32,75 +28,76 @@ function admin_bar_search_styles() {
             padding: 0;
         }
         .admin-bar-search-container {
-            position: relative;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            width: 80%;
+            max-width: 600px;
+            background-color: rgba(40, 42, 54, 0.9);
+            border-radius: 4px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            display: none; /* Masqué par défaut */
+            padding: 20px; /* Un peu de rembourrage */
         }
         .admin-bar-search-form {
             display: flex;
             align-items: center;
-            padding: 5px 10px;
-            border-radius: 4px;
-            margin: 0;
-            margin-left: 10px; 
-            margin-right: 10px; 
-            font-size: 13px;
-            line-height: 1.5;
-            height: 30px;
-            transition: width 0.3s ease;
-            background-color: #282a36; /* Dracula background color */
-            width: 150px;
+            padding: 5px;
         }
         .admin-bar-search-input {
-            border: 1px solid #6272a4; /* Dracula border color */
-            padding: 5px 10px;
-            margin: 0;
-            font-size: 13px;
-            line-height: 1.5;
-            height: 30px;
-            background-color: #282a36; /* Dracula background color */
-            transition: width 0.3s ease;
-            width: 150px;
-            color: #f8f8f2; /* Dracula text color */
+            border: 1px solid #6272a4;
+            padding: 10px;
             border-radius: 4px;
-        }   
-         .admin-bar-search-input:focus {
-            border-color: #bd93f9; /* Dracula purple */
+            font-size: 16px;
+            color: #f8f8f2;
+            background-color: #282a36;
+            width: 100%;
+        }
+        .admin-bar-search-input:focus {
+            border-color: #bd93f9;
             outline: none;
-            box-shadow: 0 0 0 1px #bd93f9; /* Dracula purple */
-            width: 300px;
+            box-shadow: 0 0 0 1px #bd93f9;
         }
         .admin-bar-search-results {
-            position: absolute;
-            top: 35px; /* Position below search field */
-            left: 0;
-            width: 100%;
-            background: #282a36; /* Dracula background color */
-            border: 1px solid #6272a4; /* Dracula border color */
-            border-top: none;
+            position: relative;
+            background: #282a36;
+            border: 1px solid #6272a4;
             border-radius: 0 0 4px 4px;
             display: none;
             z-index: 1000;
+            margin-top: 10px; /* Pour séparer les résultats de la recherche */
         }
-
         .admin-bar-search-results a {
             display: block;
-            padding: 8px 12px; /* Adjusted padding */
+            padding: 8px 12px;
             text-decoration: none;
-            color: #f8f8f2; /* Dracula text color */
+            color: #f8f8f2;
         }
-
         .admin-bar-search-results a:hover {
-            background-color: #44475a; /* Dracula darker background on hover */
+            background-color: #44475a;
         }
-
         .admin-bar-search-input::placeholder {
-            color: #6272a4; /* Dracula placeholder color */
+            color: #6272a4;
         }
-
     </style>
     <script>
          document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.querySelector('.admin-bar-search-input');
             const searchResults = document.querySelector('.admin-bar-search-results');
+            const searchContainer = document.querySelector('.admin-bar-search-container');
+
+            function showSearch() {
+                searchContainer.style.display = 'block';
+                searchInput.focus();
+            }
+
+            function hideSearch() {
+                searchContainer.style.display = 'none';
+                searchInput.value = '';
+                searchResults.innerHTML = '';
+            }
 
             searchInput.addEventListener('input', function() {
                 const searchTerm = this.value;
@@ -143,9 +140,19 @@ function admin_bar_search_styles() {
             });
 
             document.addEventListener('keydown', function(event) {
-                if (event.ctrlKey && event.key === 'k' || event.metaKey && event.key === 'k') { // Ajout de la condition pour Cmd+K
+                if (event.ctrlKey && event.key === 'k' || event.metaKey && event.key === 'k') {
                     event.preventDefault();
-                    searchInput.focus();
+                    showSearch();
+                }
+                if (event.key === 'Escape') {
+                    hideSearch();
+                }
+            });
+
+            // Masquer le champ de recherche en cliquant en dehors
+            document.addEventListener('click', function(event) {
+                if (!searchContainer.contains(event.target) && searchContainer.style.display === 'block') {
+                    hideSearch();
                 }
             });
         });
@@ -154,7 +161,6 @@ function admin_bar_search_styles() {
 }
 add_action( 'admin_head', 'admin_bar_search_styles' );
 add_action( 'wp_head', 'admin_bar_search_styles' );
-
 
 function admin_search_posts_callback() {
     $search_term = isset( $_POST['s'] ) ? sanitize_text_field( $_POST['s'] ) : '';
