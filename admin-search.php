@@ -1,6 +1,7 @@
 
+
 /**
- * Add a search form to the WordPress admin bar.
+ * Ajoute un formulaire de recherche à la barre d'administration WordPress.
  */
 function add_admin_bar_search() {
     global $wp_admin_bar;
@@ -11,9 +12,9 @@ function add_admin_bar_search() {
         'id'    => 'admin-search',
         'title' => '<div class="admin-bar-search-container">
                         <form role="search" method="get" class="admin-bar-search-form" action="' . esc_url( home_url( '/' ) ) . '">
-                            <input type="search" class="admin-bar-search-input" placeholder="Rechercher des articles..." value="' . get_search_query() . '" name="s" />
-                            <div class="admin-bar-search-results"></div>
+                        <input type="search" class="admin-bar-search-input" placeholder="Rechercher des articles..." value="' . get_search_query() . '" name="s" />
                         </form>
+                        <div class="admin-bar-search-results" style="display:none;"></div>
                     </div>',
         'meta'  => array(
             'class' => 'admin-bar-search-menu',
@@ -59,7 +60,7 @@ function admin_bar_search_styles() {
         }
         .admin-bar-search-results {
             position: absolute;
-            top: 100%;
+            top: 35px; /* Décalage pour placer sous le champ de recherche */
             left: 0;
             width: 100%;
             background: #fff;
@@ -106,14 +107,14 @@ function admin_bar_search_styles() {
                         searchResults.style.display = 'block';
                     } else {
                         const noResults = document.createElement('p');
-                        noResults.textContent = 'No results found';
+                        noResults.textContent = 'Aucun résultat trouvé';
                         searchResults.appendChild(noResults);
                         searchResults.style.display = 'block';
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    searchResults.innerHTML = '<p>Error fetching results</p>';
+                    console.error('Erreur :', error);
+                    searchResults.innerHTML = '<p>Erreur lors de la récupération des résultats</p>';
                     searchResults.style.display = 'block';
                 });
             });
