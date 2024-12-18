@@ -1,5 +1,3 @@
-
-
 /**
  * Ajoute un formulaire de recherche à la barre d'administration WordPress.
  */
@@ -120,7 +118,7 @@ function admin_bar_search_styles() {
             });
 
             document.addEventListener('keydown', function(event) {
-                if (event.ctrlKey && event.key === 'k') {
+                if (event.ctrlKey && event.key === 'k' || event.metaKey && event.key === 'k') { // Ajout de la condition pour Cmd+K
                     event.preventDefault();
                     searchInput.focus();
                 }
@@ -131,6 +129,7 @@ function admin_bar_search_styles() {
 }
 add_action( 'admin_head', 'admin_bar_search_styles' );
 add_action( 'wp_head', 'admin_bar_search_styles' );
+
 
 function admin_search_posts_callback() {
     $search_term = isset( $_POST['s'] ) ? sanitize_text_field( $_POST['s'] ) : '';
