@@ -1,3 +1,4 @@
+
 /**
  * Ajoute un formulaire de recherche à la barre d'administration WordPress.
  */
@@ -36,44 +37,68 @@ function admin_bar_search_styles() {
         .admin-bar-search-form {
             display: flex;
             align-items: center;
-            margin: 0;
-            padding: 0;
-        }
-        .admin-bar-search-input {
-            border: 1px solid #ddd;
             padding: 5px 10px;
             border-radius: 4px;
             margin: 0;
+            margin-left: 10px; 
+            margin-right: 10px; 
             font-size: 13px;
             line-height: 1.5;
             height: 30px;
             transition: width 0.3s ease;
+            background-color: #282a36; /* Dracula background color */
             width: 150px;
         }
-        .admin-bar-search-input:focus {
-            border-color: #007cba;
+        .admin-bar-search-input {
+            border: 1px solid #6272a4; /* Dracula border color */
+            padding: 5px 10px;
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.5;
+            height: 30px;
+            background-color: #282a36; /* Dracula background color */
+            transition: width 0.3s ease;
+            width: 150px;
+            color: #f8f8f2; /* Dracula text color */
+            border-radius: 4px;
+        }   
+         .admin-bar-search-input:focus {
+            border-color: #bd93f9; /* Dracula purple */
             outline: none;
-            box-shadow: 0 0 0 1px #007cba;
+            box-shadow: 0 0 0 1px #bd93f9; /* Dracula purple */
             width: 300px;
         }
         .admin-bar-search-results {
             position: absolute;
-            top: 35px; /* Décalage pour placer sous le champ de recherche */
+            top: 35px; /* Position below search field */
             left: 0;
             width: 100%;
-            background: #fff;
-            border: 1px solid #ddd;
+            background: #282a36; /* Dracula background color */
+            border: 1px solid #6272a4; /* Dracula border color */
             border-top: none;
             border-radius: 0 0 4px 4px;
             display: none;
             z-index: 1000;
         }
-        .admin-bar-search-input:focus + .admin-bar-search-results {
+
+        .admin-bar-search-results a {
             display: block;
+            padding: 8px 12px; /* Adjusted padding */
+            text-decoration: none;
+            color: #f8f8f2; /* Dracula text color */
         }
+
+        .admin-bar-search-results a:hover {
+            background-color: #44475a; /* Dracula darker background on hover */
+        }
+
+        .admin-bar-search-input::placeholder {
+            color: #6272a4; /* Dracula placeholder color */
+        }
+
     </style>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.querySelector('.admin-bar-search-input');
             const searchResults = document.querySelector('.admin-bar-search-results');
 
